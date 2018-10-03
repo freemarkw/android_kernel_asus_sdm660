@@ -3082,6 +3082,9 @@ static const struct pid_entry tgid_base_stuff[] = {
 #endif
 	REG("cmdline",    S_IRUGO, proc_pid_cmdline_ops),
 	ONE("stat",       S_IRUGO, proc_tgid_stat),
+#ifdef CONFIG_MACH_ASUS_X00T
+	ONE("cpu_infos",      S_IRUGO, proc_tgid_stat),
+#endif
 	ONE("statm",      S_IRUGO, proc_pid_statm),
 	REG("maps",       S_IRUGO, proc_pid_maps_operations),
 #ifdef CONFIG_NUMA
@@ -3477,6 +3480,9 @@ static const struct pid_entry tid_base_stuff[] = {
 #endif
 	REG("cmdline",   S_IRUGO, proc_pid_cmdline_ops),
 	ONE("stat",      S_IRUGO, proc_tid_stat),
+#ifdef CONFIG_MACH_ASUS_X00T
+	ONE("cpu_infos",      S_IRUGO, proc_tid_stat),
+#endif
 	ONE("statm",     S_IRUGO, proc_pid_statm),
 	REG("maps",      S_IRUGO, proc_tid_maps_operations),
 #ifdef CONFIG_PROC_CHILDREN
