@@ -4088,6 +4088,12 @@ CONFIG_HAVE_CLK_PREPARE=y
 CONFIG_COMMON_CLK=y
 
 #
+# Asus board selection
+#
+CONFIG_MACH_ASUS_SDM660_FAMILY=y
+CONFIG_MACH_ASUS_X00T=y
+
+#
 # Common Clock Framework
 #
 # CONFIG_COMMON_CLK_VERSATILE is not set
