@@ -427,6 +427,4 @@ obj-$(CONFIG_SND_SOC_MAX9877)	+= snd-soc-max9877.o
 obj-$(CONFIG_SND_SOC_TPA6130A2)	+= snd-soc-tpa6130a2.o
 obj-y += sdm660_cdc/
 obj-y += msm_sdw/
-snd-soc-aw87339-spk-objs := aw87339_audio_spk.o
-obj-$(CONFIG_SND_SOC_AW87339) += snd-soc-aw87339-spk.o
 obj-$(CONFIG_SND_SOC_TFA9874)   += tfa9874/
