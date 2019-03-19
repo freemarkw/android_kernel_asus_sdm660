@@ -664,12 +664,16 @@
 #define KEY_SARSENSOR_NEAR		0x2ea
 #define KEY_SARSENSOR_FAR		0x2eb
 
-#define KEY_TP_GESTURE_W 	253
-#define KEY_TP_GESTURE_E 	250
-#define KEY_TP_GESTURE_S 	251
-#define KEY_TP_GESTURE_Z 	254
-#define KEY_TP_GESTURE_C 	249
-#define KEY_TP_GESTURE_V 	252
+#define KEY_TP_GESTURE_W		253
+#define KEY_TP_GESTURE_E		250
+#define KEY_TP_GESTURE_S		251
+#define KEY_TP_GESTURE_Z		254
+#define KEY_TP_GESTURE_C		249
+#define KEY_TP_GESTURE_V		252
+#define KEY_TP_GESTURE_SWIPE_UP		255
+#define KEY_TP_GESTURE_SWIPE_DOWN	256
+#define KEY_TP_GESTURE_SWIPE_LEFT	257
+#define KEY_TP_GESTURE_SWIPE_RIGHT	258
 
 /* We avoid low common keys in module aliases so they don't get huge. */
 #define KEY_MIN_INTERESTING	KEY_MUTE
