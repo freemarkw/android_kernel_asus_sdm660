@@ -11,11 +11,14 @@
  * GNU General Public License for more details.
  */
 
-#include "X00T-panels.dtsi"
-#include "X00T-general.dtsi"
-#include "X00T-touchscreens.dtsi"
-#include "X00T-camera-sensor.dtsi"
-#include "X00T-audio.dtsi"
-#include "X00T-memory.dtsi"
-#include "X00T-pinctrl.dtsi"
-#include "X00T-tweaks.dtsi"
+/* This is dts overlay for tweaks and hacks */
+
+/* 
+ * ADRENO CHIPID HACK START
+ * X00T defaults have Aderno 509.
+ * Changed to Adreno 512 for bypass graphic compatibility in games
+ */
+&msm_gpu {
+	qcom,chipid = <0x05010200>;
+};
+/* ADRENO CHIPID HACK END */
