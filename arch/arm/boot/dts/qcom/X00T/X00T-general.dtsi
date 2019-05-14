@@ -142,6 +142,9 @@
 				qcom,hw-settle-time = <2>;
 				qcom,fast-avg-setup = <0>;
 			};
+			chan@4f {
+				qcom,hw-settle-time = <15>;
+			};
 		};
 
 		pm660_charger: qcom,qpnp-smb2 {
