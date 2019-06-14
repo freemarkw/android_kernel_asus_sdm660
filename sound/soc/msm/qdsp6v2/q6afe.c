@@ -579,6 +579,7 @@ static int32_t afe_callback(struct apr_client_data *data, void *priv)
 	    data->opcode == AFE_PORT_CMDRSP_GET_PARAM_V3) {
 		uint32_t *payload = data->payload;
 		uint32_t param_id;
+		uint32_t param_id_pos = 0;
 
 		if (!payload || (data->token >= AFE_MAX_PORTS)) {
 			pr_err("%s: Error: size %d payload %pK token %d\n",
@@ -587,16 +588,26 @@ static int32_t afe_callback(struct apr_client_data *data, void *priv)
 			return -EINVAL;
 		}
 
-		param_id = (data->opcode == AFE_PORT_CMDRSP_GET_PARAM_V3) ?
-				   payload[3] :
-				   payload[2];
+		if (rtac_make_afe_callback(data->payload,
+					   data->payload_size))
+			return 0;
+
+		if (data->opcode == AFE_PORT_CMDRSP_GET_PARAM_V3)
+			param_id_pos = 4;
+		else
+			param_id_pos = 3;
+
+		if (data->payload_size >= param_id_pos * sizeof(uint32_t))
+			param_id = payload[param_id_pos - 1];
+		else {
+			pr_err("%s: Error: size %d is less than expected\n",
+				__func__, data->payload_size);
+			return -EINVAL;
+		}
 		if (param_id == AFE_PARAM_ID_DEV_TIMING_STATS) {
 			av_dev_drift_afe_cb_handler(data->opcode, data->payload,
 						    data->payload_size);
 		} else {
-			if (rtac_make_afe_callback(data->payload,
-						   data->payload_size))
-				return 0;
 #ifdef CONFIG_SND_SOC_TFA9874
 			if (atomic_read(&this_afe.tfa_state) == 1) {
 				if (data->payload_size == sizeof(uint32_t))
