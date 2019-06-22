@@ -397,8 +397,11 @@ const uint16_t touch_key_array[TOUCH_KEY_NUM] = {
 #define GESTURE_EVENT_W 		KEY_TP_GESTURE_W
 #define GESTURE_EVENT_Z 		KEY_TP_GESTURE_Z
 /* Huaqin modify gesture keycode by yuexinghan 20171109 start */
-#define GESTURE_EVENT_SWIPE_UP 248
-#define GESTURE_EVENT_DOUBLE_CLICK KEY_WAKEUP
+#define GESTURE_EVENT_SWIPE_UP          KEY_TP_GESTURE_SWIPE_UP
+#define GESTURE_EVENT_SWIPE_DOWN        KEY_TP_GESTURE_SWIPE_DOWN
+#define GESTURE_EVENT_SWIPE_LEFT        KEY_TP_GESTURE_SWIPE_LEFT
+#define GESTURE_EVENT_SWIPE_RIGHT       KEY_TP_GESTURE_SWIPE_RIGHT
+#define GESTURE_EVENT_DOUBLE_CLICK      KEY_WAKEUP
 /* Huaqin modify gesture keycode by yuexinghan 20171109 end */
 
 const uint16_t gesture_key_array[] = {
@@ -412,6 +415,9 @@ const uint16_t gesture_key_array[] = {
 	GESTURE_EVENT_E,
 	GESTURE_EVENT_S,
 	GESTURE_EVENT_SWIPE_UP,
+	GESTURE_EVENT_SWIPE_DOWN,
+	GESTURE_EVENT_SWIPE_LEFT,
+	GESTURE_EVENT_SWIPE_RIGHT,
 	KEY_WAKEUP,
 	KEY_WAKEUP,
 	KEY_WAKEUP,
@@ -1052,9 +1058,9 @@ int nvt_test_node_init(struct platform_device *tpinfo_device)
 #define ID_GESTURE_WORD_e			19
 #define ID_GESTURE_WORD_S			20
 #define ID_GESTURE_SLIDE_UP		21
-//#define GESTURE_SLIDE_DOWN		22
-//#define GESTURE_SLIDE_LEFT		23
-//#define GESTURE_SLIDE_RIGHT		24
+#define ID_GESTURE_SLIDE_DOWN		22
+#define ID_GESTURE_SLIDE_LEFT		23
+#define ID_GESTURE_SLIDE_RIGHT		24
 
 static struct wake_lock gestrue_wakelock;
 
@@ -1138,18 +1144,24 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 				keycode = gesture_key_array[9];
 			}
 			break;
-		/* case GESTURE_SLIDE_DOWN:
-			NVT_LOG("Gesture : Slide DOWN.\n");
-			keycode = gesture_key_array[10];
+		case ID_GESTURE_SLIDE_DOWN:
+			if (screen_gesture) {
+				NVT_LOG("Gesture : Slide DOWN.\n");
+				keycode = gesture_key_array[10];
+			}
 			break;
-		case GESTURE_SLIDE_LEFT:
-			NVT_LOG("Gesture : Slide LEFT.\n");
-			keycode = gesture_key_array[11];
+		case ID_GESTURE_SLIDE_LEFT:
+			if (screen_gesture) {
+				NVT_LOG("Gesture : Slide LEFT.\n");
+				keycode = gesture_key_array[11];
+			}
 			break;
-		case GESTURE_SLIDE_RIGHT:
-			NVT_LOG("Gesture : Slide RIGHT.\n");
-			keycode = gesture_key_array[12];
-			break; */
+		case ID_GESTURE_SLIDE_RIGHT:
+			if (screen_gesture) {
+				NVT_LOG("Gesture : Slide RIGHT.\n");
+				keycode = gesture_key_array[12];
+			}
+			break;
 		default:
 			NVT_LOG("Still in gesture mode.\n");
 			break;
