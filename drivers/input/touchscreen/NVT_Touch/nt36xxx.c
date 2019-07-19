@@ -2,7 +2,7 @@
  * Copyright (C) 2010 - 2017 Novatek, Inc.
  *
  * $Revision: 16485 $
- * $Date: 2017-09-14 10:10:52 +0800 (�𪂹���, 14 銋脲�� 2017) $
+ * $Date: 2017-09-14 10:10:52 +0800 $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,10 @@
 #include <linux/miscdevice.h>
 #include <linux/list.h>
 #include <linux/device.h>
+#include <linux/kobject.h>
 /* Huaqin add by yuexinghan for ITO test end */
 #endif
 #include <linux/kernel.h>
-#include <linux/kobject.h>
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/interrupt.h>
@@ -422,71 +422,84 @@ const uint16_t gesture_key_array[] = {
 static uint8_t bTouchIsAwake = 0;
 
 #if WAKEUP_GESTURE
-long gesture_mode = 0;
-static int allow_gesture = 0;
-static int screen_gesture = 0;
-static struct kobject *gesture_kobject;
+#define PAGESIZE 512
 
-static ssize_t gesture_show(struct kobject *kobj, struct kobj_attribute *attr,
-                      char *buf)
-{
-        return sprintf(buf, "%d\n", allow_gesture);
-}
+static int double_tap_state = 0;
+static int letter_c_state = 0;
+static int letter_e_state = 0;
+static int letter_s_state = 0;
+static int letter_v_state = 0;
+static int letter_w_state = 0;
+static int letter_z_state = 0;
+static int up_swipe_state = 0;
 
-static ssize_t gesture_store(struct kobject *kobj, struct kobj_attribute *attr,
-                      const char *buf, size_t count)
-{
-        sscanf(buf, "%du", &allow_gesture);
-        return count;
-}
+#define GESTURE_ATTR(name)\
+    static ssize_t name##_enable_read_func(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)\
+    {\
+        int ret = 0;\
+        char page[PAGESIZE];\
+        ret = sprintf(page, "%d\n", name##_state);\
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));\
+        return ret;\
+    }\
+    static ssize_t name##_enable_write_func(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos)\
+    {\
+        int ret = 0;\
+        char page[PAGESIZE] = {0};\
+        ret = copy_from_user(page, user_buf, count);\
+        ret = sscanf(page, "%d", &name##_state);\
+        return count;\
+    }\
+    static const struct file_operations name##_enable_proc_fops = {\
+        .write = name##_enable_write_func,\
+        .read =  name##_enable_read_func,\
+        .open = simple_open,\
+        .owner = THIS_MODULE,\
+    };
 
-static struct kobj_attribute gesture_attribute = __ATTR(dclicknode, 0664, gesture_show,
-                                                   gesture_store);
+GESTURE_ATTR(double_tap);
+GESTURE_ATTR(letter_c);
+GESTURE_ATTR(letter_e);
+GESTURE_ATTR(letter_s);
+GESTURE_ATTR(letter_v);
+GESTURE_ATTR(letter_w);
+GESTURE_ATTR(letter_z);
+GESTURE_ATTR(up_swipe);
 
-static ssize_t screengesture_show(struct kobject *kobj, struct kobj_attribute *attr,
-                      char *buf)
-{
-        return sprintf(buf, "%d\n", screen_gesture);
-}
+#define CREATE_PROC_NODE(PARENT, NAME, MODE)\
+    node = proc_create(#NAME, MODE, PARENT, &NAME##_proc_fops);\
+    if (node == NULL) {\
+        ret = -ENOMEM;\
+        NVT_LOG("[Nvt-ts] : Couldn't create " #NAME " in " #PARENT "\n");\
+    }
 
-static ssize_t screengesture_store(struct kobject *kobj, struct kobj_attribute *attr,
-                      const char *buf, size_t count)
-{
-        sscanf(buf, "%du", &screen_gesture);
-        return count;
-}
+#define CREATE_GESTURE_NODE(NAME)\
+    CREATE_PROC_NODE(touchpanel, NAME##_enable, 0664)
 
-static struct kobj_attribute screengesture_attribute = __ATTR(gesture_node, 0664, screengesture_show,
-                                                   screengesture_store);
+int nvt_gesture_proc_init(void) {
+    int ret = 0;
+    struct proc_dir_entry *touchpanel = NULL;
+    struct proc_dir_entry *node  = NULL;
 
-int create_gesture_node(void) {
-	int error = 0, error2 = 0;
+    touchpanel = proc_mkdir("touchpanel", NULL);
 
-        gesture_kobject = kobject_create_and_add("touchpanel",
-                                                 kernel_kobj);
-        if(!gesture_kobject)
-                return -ENOMEM;
-
-        NVT_LOG("[Nvt-ts] : Gesture Node initialized successfully \n");
-
-        error = sysfs_create_file(gesture_kobject, &gesture_attribute.attr);
-        if (error) {
-                NVT_LOG("[Nvt-ts] : failed to create the gesture_node file in /sys/kernel/touchpanel \n");
-        }
-
-        error2 = sysfs_create_file(gesture_kobject, &screengesture_attribute.attr);
-        if (error) {
-                NVT_LOG("[Nvt-ts] : failed to create the gesture_node file in /sys/kernel/touchpanel \n");
-        }
-
-        return error;
-}
-
-void destroy_gesture(void) {
-	kobject_put(gesture_kobject);
+    if (touchpanel == NULL) {
+        ret = -ENOMEM;
+        NVT_LOG("[Nvt-ts] : Couldn't create proc/touchpanel \n");
+    }
+    
+    CREATE_GESTURE_NODE(double_tap);
+    CREATE_GESTURE_NODE(letter_c);
+    CREATE_GESTURE_NODE(letter_e);
+    CREATE_GESTURE_NODE(letter_s);
+    CREATE_GESTURE_NODE(letter_v);
+    CREATE_GESTURE_NODE(letter_w);
+    CREATE_GESTURE_NODE(letter_z);
+    CREATE_GESTURE_NODE(up_swipe);
+    
+    return ret;
 }
 #endif
-
 
 /*******************************************************
 Description:
@@ -1069,50 +1082,50 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 
 	switch (gesture_id) {
 		case ID_GESTURE_WORD_C:
-			if (screen_gesture) {
+			if (letter_c_state) {
 				NVT_LOG("Gesture : Word-C.\n");
 				keycode = gesture_key_array[0];
 			}
 			break;
 		case ID_GESTURE_WORD_W:
-			if (screen_gesture) {
+			if (letter_w_state) {
 				NVT_LOG("Gesture : Word-W.\n");
 				keycode = gesture_key_array[1];
 			}
 			break;
 		case ID_GESTURE_WORD_V:
-			if (screen_gesture) {
+			if (letter_v_state) {
 				NVT_LOG("Gesture : Word-V.\n");
 				keycode = gesture_key_array[2];
 			}
 			break;
 		case ID_GESTURE_DOUBLE_CLICK:
-			if (allow_gesture) {
+			if (double_tap_state) {
 				is_double_tap = 1;
 				NVT_LOG("Gesture : Double Click.\n");
 				keycode = gesture_key_array[3];
 			}
 			break;
 		case ID_GESTURE_WORD_Z:
-			if (screen_gesture) {
+			if (letter_z_state) {
 				NVT_LOG("Gesture : Word-Z.\n");
 				keycode = gesture_key_array[4];
 			}
 			break;
 		case ID_GESTURE_WORD_e:
-			if (screen_gesture) {
+			if (letter_e_state) {
 				NVT_LOG("Gesture : Word-e.\n");
 				keycode = gesture_key_array[7];
 			}
 			break;
 		case ID_GESTURE_WORD_S:
-			if (screen_gesture) {
+			if (letter_s_state) {
 				NVT_LOG("Gesture : Word-S.\n");
 				keycode = gesture_key_array[8];
 			}
 			break;
 		case ID_GESTURE_SLIDE_UP:
-			if (screen_gesture) {
+			if (up_swipe_state) {
 				NVT_LOG("Gesture : Slide UP.\n");
 				keycode = gesture_key_array[9];
 			}
@@ -1749,7 +1762,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 #endif
 
 #if WAKEUP_GESTURE
-	er = create_gesture_node();
+	er = nvt_gesture_proc_init();
 #endif
 
 
@@ -1842,20 +1855,6 @@ static int32_t nvt_ts_remove(struct i2c_client *client)
 	return 0;
 }
 
-/* Huaqin modify for gesture mode by yuexinghan 20171120 start */
-long get_gesture_mode(void)
-{
-	return gesture_mode;
-}
-
-void set_gesture_mode(long enable)
-{
-	NVT_LOG("%s gesture mode\n", (enable == 0)?"disable":"enable");
-	gesture_mode = enable;
-	return;
-}
-/* Huaqin modify for gesture mode by yuexinghan 20171120 end */
-
 /*******************************************************
 Description:
 	Novatek touchscreen driver suspend function.
@@ -1891,7 +1890,8 @@ static int32_t nvt_ts_suspend(struct device *dev)
 // Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 #if WAKEUP_GESTURE
-	if (!allow_gesture && !screen_gesture) {
+	if (!double_tap_state && !letter_c_state && !letter_e_state && !letter_s_state 
+            && !letter_v_state && !letter_w_state && !letter_z_state && !up_swipe_state) {
 // Huaqin add for ctp lose efficacy by zhengwu.lu. at 2018/04/18 For Platform start
 		//disable_irq(ts->client->irq);
 		nvt_irq_disable();
@@ -1945,7 +1945,8 @@ static int32_t nvt_ts_suspend(struct device *dev)
 	msleep(50);
 
 	mutex_unlock(&ts->lock);
-	if (!allow_gesture && !screen_gesture) {
+	if (!double_tap_state && !letter_c_state && !letter_e_state && !letter_s_state 
+            && !letter_v_state && !letter_w_state && !letter_z_state && !up_swipe_state) {
 	nvt_lcm_power_source_ctrl(data, 0);//disable vsp/vsn
 	NVT_LOG("sleep suspend end  disable vsp/vsn\n");
 	}
@@ -2142,7 +2143,6 @@ return:
 static void __exit nvt_driver_exit(void)
 {
 	i2c_del_driver(&nvt_i2c_driver);
-	destroy_gesture();
 
 	if (nvt_wq)
 		destroy_workqueue(nvt_wq);
