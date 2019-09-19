@@ -636,11 +636,12 @@ static int stk3x1x_i2c_smbus_write_byte_data(struct i2c_client *client, unsigned
  * {lux, value}, */
 static uint32_t als_level_table[][2] = {
 	{0, 0},
-	{18, 18},
-	{300, 300},
-	{350, 366},
-	{600, 700},
-	{1000, 1300},
+	{1, 2},
+	{18, 22},
+	{300, 336},
+	{350, 413},
+	{600, 840},
+	{1000, 1546},
 	{4000, 4840},
 	{9000, 9410},
 	{30000, 30000}, //alignment
