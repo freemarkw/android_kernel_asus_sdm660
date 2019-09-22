@@ -18,4 +18,3 @@
 #include "X00T-audio.dtsi"
 #include "X00T-memory.dtsi"
 #include "X00T-pinctrl.dtsi"
-#include "X00T-tweaks.dtsi"
