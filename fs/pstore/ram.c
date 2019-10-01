@@ -45,7 +45,11 @@ module_param(record_size, ulong, 0400);
 MODULE_PARM_DESC(record_size,
 		"size of each dump done on oops/panic");
 
+#ifdef CONFIG_MACH_ASUS_X00T
+static ulong ramoops_console_size = 256*1024UL;
+#else
 static ulong ramoops_console_size = MIN_MEM_SIZE;
+#endif
 module_param_named(console_size, ramoops_console_size, ulong, 0400);
 MODULE_PARM_DESC(console_size, "size of kernel console log");
 
@@ -57,7 +61,11 @@ static ulong ramoops_pmsg_size = MIN_MEM_SIZE;
 module_param_named(pmsg_size, ramoops_pmsg_size, ulong, 0400);
 MODULE_PARM_DESC(pmsg_size, "size of user space message log");
 
+#ifdef CONFIG_MACH_ASUS_X00T
+static ulong mem_address = 0x9ff00000;
+#else
 static ulong mem_address;
+#endif
 module_param(mem_address, ulong, 0400);
 MODULE_PARM_DESC(mem_address,
 		"start of reserved RAM used to store oops/panic logs");
